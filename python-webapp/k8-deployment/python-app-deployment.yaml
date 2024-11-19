@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: simple-webapp
-        image: learnwithraghu/simple-login-page:v4
+        image: chedi1/app:v1
         volumeMounts:
         - mountPath: /log
           name: log-volume
