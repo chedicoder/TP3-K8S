@@ -2,6 +2,7 @@ name: chedi workflow
 
 on:
   push:  
+  workflow_dispatch:
 
 jobs:
   Build_Push_to_DockerHub:
