@@ -25,7 +25,14 @@ jobs:
     
     - name: Switch to application directory
       run: ls -ll
-    
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: test
+      run: ls -ll
+
     # - name: Build and push
     #   uses: docker/build-push-action@v6
     #   with:
