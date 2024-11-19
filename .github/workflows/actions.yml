@@ -27,6 +27,6 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
-        python-webapp/python-webapp/k8-deployment/
+        cd python-webapp/python-webapp/k8-deployment/
         kubectl apply -f python-app-deployment.yaml
     
