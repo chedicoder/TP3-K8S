@@ -6,8 +6,8 @@ on:
 
 jobs:
   Build_Push_to_DockerHub:
-    runs-on: ubuntu-latest
-    # runs-on: self-hosted
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -26,7 +26,6 @@ jobs:
         tags: chedi1/app:v1
 
     - name: Deploy to Kubernetes
-      context: 
       run: |
         python-webapp/python-webapp/k8-deployment/
         kubectl apply -f python-app-deployment.yaml
