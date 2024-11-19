@@ -35,7 +35,7 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
-        kubectl --kubeconfig=./kubeconfig get pods
+        kubectl --kubeconfig=./kubeconfig --insecure-skip-tls-verify=true get pods
 
 
     - name: Clean-Up
