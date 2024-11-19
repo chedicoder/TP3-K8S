@@ -27,6 +27,7 @@ jobs:
     - name: test kubectl
       run: |
         cd python-webapp/k8-deployment
+        kubectl apply -f python-app-deployment.yaml
         kubectl get pods
         
 
