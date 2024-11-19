@@ -5,8 +5,8 @@ on:
 
 jobs:
   build_Push_to_DockerHub:
-    # runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    # runs-on: self-hosted
     steps:
     # - name: Checkout code
     #   uses: actions/checkout@v2
@@ -23,27 +23,23 @@ jobs:
     #     context: python-webapp/
     #     push: true
     #     tags: chedi1/app:v1
-  
-    - name: test kubectl
+
+    - name: Generate Kubeconfig and Certs
       run: |
-        cd python-webapp/k8-deployment
-        kubectl apply -f python-app-deployment.yaml
-        kubectl get pods
-        
+        echo ${{ secrets.KUBECONFIG }} > ./kubeconfig
+        echo ${{ secrets.CLIENT_K8S_CERT }} > ./client.crt
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl --kubeconfig=./kubeconfig get pods
+
+
+    - name: Clean-Up
+      run: |
+        rm ./kubeconfig
+        rm ./client.cert    
 
     # - name: Generate Kubeconfig and Certs
     #   run: |
-    #     echo ${{ secrets.KUBECONFIG }} > ./deploy.kubeconfig
-    #     echo ${{ secrets.CERTS }} > ./cert
-
-    # - name: Kubernetes Deployment
-    #   uses: TanmoySG/k-deploy-action@v0.2.2-alpha
-    #   with:
-    #     kubeconfig: ./deploy.kubeconfig
-    #     namespace: 'default'
-    #     manifest: k8-deployment/python-app-deployment.yaml
-
-    # - name: Clean-Up
-    #   run: |
-    #     rm path/to/deploy.kubeconfig
-    #     rm path/to/cert    
+    #     kubectl get pods
+    
