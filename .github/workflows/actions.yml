@@ -24,6 +24,7 @@ jobs:
     #     push: true
     #     tags: chedi1/app:v1
 
+    
     - name: Generate Kubeconfig and Certs
       run: |
         echo ${{ secrets.KUBECONFIG }} > ./kubeconfig
