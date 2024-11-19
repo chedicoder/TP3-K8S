@@ -9,42 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     # runs-on: self-hosted
     steps:
-    # - name: Checkout code
-    #   uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    # - name: Login to Docker Hub
-    #   uses: docker/login-action@v3
-    #   with:
-    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # - name: Build and push
-    #   uses: docker/build-push-action@v6
-    #   with:
-    #     context: python-webapp/
-    #     push: true
-    #     tags: chedi1/app:v1
-
-    
-    - name: Generate Kubeconfig and Certs
-      run: |
-        echo ${{ secrets.KUBECONFIG }} > ./kubeconfig
-        echo ${{ secrets.CLIENT_K8S_CERT }} > ./client.crt
-        echo ${{ secrets.CLIENT_K8S_KEY }} > ./client.key
-        echo ${{ secrets.CA_CERT }} > ./ca.crt
-        cat ./kubeconfig
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: python-webapp/
+        push: true
+        tags: chedi1/app:v1
 
     - name: Deploy to Kubernetes
+      context: 
       run: |
-        kubectl --kubeconfig=./kubeconfig --insecure-skip-tls-verify=true get pods
-
-
-    - name: Clean-Up
-      run: |
-        rm ./kubeconfig
-        rm ./client.cert    
-
-    # - name: Generate Kubeconfig and Certs
-    #   run: |
-    #     kubectl get pods
+        python-webapp/python-webapp/k8-deployment/
+        kubectl apply -f python-app-deployment.yaml
     
