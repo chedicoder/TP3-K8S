@@ -1,13 +1,42 @@
 import logging
 import re
+import json
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a real secret key in production
 
+# Define a custom JSON formatter
+# Créer des données plus significatives et plus claires en transformant le format json
+# du log en des clé:valeur
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "level": record.levelname,
+            "message": record.msg,
+            "time": self.formatTime(record, self.datefmt),
+            "logger": record.name,
+            "pathname": record.pathname,
+            "lineno": record.lineno,
+            "funcname": record.funcName,
+            "request": {
+                "method": request.method,
+                "url": request.url,
+                "remote_addr": request.remote_addr,
+                "user_agent": str(request.user_agent)
+            }
+        }
+        if record.args:
+            log_record['message'] = log_record['message'] % record.args
+        return json.dumps(log_record)
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 # Default credentials
 USERNAME = 'admin'
@@ -22,13 +51,11 @@ def is_weak_password(password):
 
 @app.before_request
 def log_request_info():
-    logger.info(f"Request method: {request.method}")
-    logger.info(f"User Agent: {request.user_agent}")
-    logger.info(f"Client IP: {request.remote_addr}")
+    logger.info(f"Request received")
 
 @app.after_request
 def log_response_info(response):
-    logger.info(f"Response status: {response.status}")
+    logger.info(f"Response sent with status: {response.status_code}")
     return response
 
 @app.route('/')
