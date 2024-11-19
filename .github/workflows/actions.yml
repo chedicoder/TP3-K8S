@@ -4,7 +4,7 @@ on:
   push:  
 
 jobs:
-  build_Push_to_DockerHub:
+  Build_Push_to_DockerHub:
     runs-on: ubuntu-latest
     # runs-on: self-hosted
     steps:
