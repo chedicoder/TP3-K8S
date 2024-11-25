@@ -49,6 +49,8 @@ def is_weak_password(password):
         return True
     return False
 
+# Configure monitoring
+
 @app.before_request
 def log_request_info():
     logger.info(f"Request received")
@@ -75,6 +77,8 @@ def login():
         return redirect(url_for('welcome'))
     else:
         flash('Invalid credentials. Please try again.', 'danger')
+        # Invalid credentials: v1
+        # wrong credentials: v2
         logger.warning('Login failed for user: %s', username)
         return redirect(url_for('second_level_auth'))
 
