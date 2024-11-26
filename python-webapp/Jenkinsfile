@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "app:v1"
+        DOCKER_IMAGE = "app:v2"
         USERNAME = "chedi1"
         TOKEN = credentials('DockerHub')
     }
