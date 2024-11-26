@@ -4,11 +4,9 @@ import json
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a real secret key in production
+app.secret_key = 'your_secret_key'
 
-# Define a custom JSON formatter
-# Créer des données plus significatives et plus claires en transformant le format json
-# du log en des clé:valeur
+
 
 class JSONFormatter(logging.Formatter):
     def format(self, record):
@@ -71,7 +69,7 @@ def login():
         flash('Login successful!', 'success')
         logger.info('Login successful for user: %s', username)
         if is_weak_password(password):
-            logger.warning('Weak password used by user: %s', username)
+            logger.warning('weak password used by user: %s', username)
         return redirect(url_for('welcome'))
     else:
         flash('Invalid credentials. Please try again.', 'danger')
