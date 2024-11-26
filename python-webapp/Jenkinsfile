@@ -19,6 +19,7 @@ pipeline {
             steps {
                 script {
                     sh 'cd python-webapp'
+                    sh 'ls -ll'
                     sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
