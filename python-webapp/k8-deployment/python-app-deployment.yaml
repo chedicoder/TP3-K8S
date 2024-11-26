@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: simple-webapp
-        image: chedi1/app:v2
+        image: chedi1/app:v1
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: /log
