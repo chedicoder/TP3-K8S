@@ -18,12 +18,14 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    sh 'cd python-webapp'
-                    sh 'ls -ll'
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    sh '''
+                        cd python-webapp
+                        docker build -t ${DOCKER_IMAGE} .
+                    '''
                 }
             }
         }
+
 
         stage('Create Tag') {
             steps {
@@ -44,7 +46,7 @@ pipeline {
         stage('Deploy Image') {
             steps {
                 script {
-                    sh 'sudo kubectl --kubeconfig ~/.kube/config apply -f k8-deployment/python-app-deployment.yaml'
+                    sh 'sudo kubectl --kubeconfig ~/.kube/config apply -f python-webapp/k8-deployment/python-app-deployment.yaml'
                 }
             }
         }
