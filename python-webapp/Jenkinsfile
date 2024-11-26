@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = "app:v1"
+        USERNAME = "chedi1"
+        TOKEN = credentials('DockerHub')
+    }
+    stages {
+      
+        stage('Clone & Switch to project branch') {
+            steps {
+                script {
+                    checkout scm
+                }
+            }
+        }
+        
+        stage('Build Image') {
+            steps {
+                script {
+                    sh 'cd python-webapp'
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                }
+            }
+        }
+
+        stage('Create Tag') {
+            steps {
+                script {
+                    sh 'docker tag ${DOCKER_IMAGE} ${USERNAME}/${DOCKER_IMAGE}'
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                script {
+                    sh 'echo ${TOKEN} | docker login -u ${USERNAME} --password-stdin'
+                    sh 'docker push ${USERNAME}/${DOCKER_IMAGE}'
+                }
+            }
+        }
+
+        stage('Deploy Image') {
+            steps {
+                script {
+                    sh 'sudo kubectl --kubeconfig ~/.kube/config apply -f k8-deployment/python-app-deployment.yaml'
+                }
+            }
+        }
+    }
+}

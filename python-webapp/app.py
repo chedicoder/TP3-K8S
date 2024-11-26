@@ -49,8 +49,6 @@ def is_weak_password(password):
         return True
     return False
 
-# Configure monitoring
-
 @app.before_request
 def log_request_info():
     logger.info(f"Request received")
