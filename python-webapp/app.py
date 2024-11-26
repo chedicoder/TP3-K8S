@@ -69,7 +69,7 @@ def login():
         flash('Login successful!', 'success')
         logger.info('Login successful for user: %s', username)
         if is_weak_password(password):
-            logger.warning('weak password used by user: %s', username)
+            logger.warning('Weak password used by user: %s', username)
         return redirect(url_for('welcome'))
     else:
         flash('Invalid credentials. Please try again.', 'danger')
