@@ -2,11 +2,27 @@ import logging
 import re
 import json
 from flask import Flask, render_template, request, redirect, url_for, flash
+from prometheus_client import make_wsgi_app, Counter, Histogram
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+    '/metrics': make_wsgi_app()
+})
 
+REQUEST_COUNT = Counter(
+    'app_request_count', # Nom de groupe de metrics
+    'Application Request Count', # Description de groupe de metrics
+    ['method', 'endpoint', 'http_status'] # Les attributs de chaque metric dans le groupe à fixer 
+)
+REQUEST_LATENCY = Histogram(
+    'app_request_latency_seconds',
+    'Application Request Latency',
+    ['method', 'endpoint']
+)
 
 class JSONFormatter(logging.Formatter):
     def format(self, record):
@@ -58,10 +74,15 @@ def log_response_info(response):
 
 @app.route('/')
 def index():
+# Le metric à compter est le nombre des requetes ayant method = Get + path = / + réponse 200)
+    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('login.html')
+
 
 @app.route('/login', methods=['POST'])
 def login():
+# Le metric à compter est le nombre des requetes ayant method = POST + path = /login + réponse 200)
+    REQUEST_COUNT.labels('POST', '/login', 200).inc()
     username = request.form['username']
     password = request.form['password']
 
@@ -76,12 +97,18 @@ def login():
         logger.warning('Login failed for user: %s', username)
         return redirect(url_for('second_level_auth'))
 
+
 @app.route('/welcome')
 def welcome():
+# Le metric à compter est le nombre des requetes ayant method = GET + path = /welcome + réponse 200)
+    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('welcome.html')
+
 
 @app.route('/second_level_auth')
 def second_level_auth():
+# Le metric à compter est le nombre des requetes ayant method = GET + path = /second_level_auth + réponse 200)
+    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('second_level_auth.html')
 
 if __name__ == '__main__':

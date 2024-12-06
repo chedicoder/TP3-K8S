@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: simple-webapp-deployment
-  namespace: default
+  namespace: efk
   labels:
     app: simple-webapp
 spec:
