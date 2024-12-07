@@ -3,34 +3,36 @@ kind: Service
 metadata:
   name: simple-webapp-service
   namespace: efk
+  annotations:
+    prometheus.io/port: "web"
+    prometheus.io/scrape: "true"
   labels:
-    app: simple-webapp
-    job: flask-api
+    app.kubernetes.io/part-of: dms
 spec:
   selector:
     app: simple-webapp
-  type: NodePort
+  type: ClusterIP
   ports:
-  - name: web
+  - name: "web"
     protocol: TCP
     port: 80
-    targetPort: 5001
-    nodePort: 30001 
+    targetPort: 5001 
 
 ---
+
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: api-service-monitor
-  labels:
-    release: prometheus
-    app: prometheus
+  name: web-service-monitor
+  namespace: efk
 spec:
-  jobLabel: job
   endpoints:
-    - interval: 30s
+    - interval: 15s
       port: web
-      path: /metrics
+      scrapeTimeout: 14s
+  namespaceSelector:
+    matchNames:
+      - efk
   selector:
     matchLabels:
-      app: simple-webapp
+      app.kubernetes.io/part-of: dms
