@@ -11,10 +11,18 @@ import psutil
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# Application metrics
+# Custom metrics
 REQUEST_COUNT = Counter('http_request_total', 'Total HTTP Requests', ['method', 'status', 'path'])
 REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP Request Duration', ['method', 'status', 'path'])
 REQUEST_IN_PROGRESS = Gauge('http_requests_in_progress', 'HTTP Requests in progress', ['method', 'path'])
+
+# System metrics
+CPU_USAGE = Gauge('process_cpu_usage', 'Current CPU usage in percent')
+MEMORY_USAGE = Gauge('process_memory_usage_bytes', 'Current memory usage in bytes')
+
+def update_system_metrics():
+    CPU_USAGE.set(psutil.cpu_percent())
+    MEMORY_USAGE.set(psutil.Process().memory_info().rss)
 
 @app.before_request
 def before_request():
@@ -31,10 +39,21 @@ def after_request(response):
 
 @app.route('/metrics')
 def metrics():
+    update_system_metrics()
     return generate_latest(REGISTRY), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
-app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
-    '/metrics': make_wsgi_app()
+# Modify the middleware to return bytes
+def metrics_app(environ, start_response):
+    update_system_metrics()
+    data = generate_latest(REGISTRY)
+    status = '200 OK'
+    headers = [('Content-Type', CONTENT_TYPE_LATEST), ('Content-Length', str(len(data)))]
+    start_response(status, headers)
+    return [data]
+
+# Use the modified middleware
+app_dispatch = DispatcherMiddleware(app, {
+    '/metrics': metrics_app
 })
 
 # Logging
@@ -79,7 +98,7 @@ def is_weak_password(password):
 
 @app.before_request
 def log_request_info():
-    logger.info(f"Request received")
+    logger.info(f"Request  received")
 
 @app.after_request
 def log_response_info(response):
@@ -118,4 +137,4 @@ def second_level_auth():
     return render_template('second_level_auth.html')
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=5000)
+  app.run()
