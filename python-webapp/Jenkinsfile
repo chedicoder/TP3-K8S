@@ -1,9 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "app:v1"
-        USERNAME = "chedi1"
-        TOKEN = credentials('DockerHub')
+        EMAIL_ADDRESS = "chadighribi2@gmail.com"
     }
     stages {
       
@@ -15,40 +13,46 @@ pipeline {
             }
         }
         
-        stage('Build Image') {
+        stage('Infrastructure Provisioning') {
             steps {
                 script {
                     sh '''
-                        cd python-webapp
-                        docker build -t ${DOCKER_IMAGE} .
+                        cd terraform
+                        ./deploytf.sh
                     '''
                 }
             }
         }
 
-
-        stage('Create Tag') {
+        stage('Deploy Application to azure app service') {
             steps {
                 script {
-                    sh 'docker tag ${DOCKER_IMAGE} ${USERNAME}/${DOCKER_IMAGE}'
+                    sh 'az webapp deployment source config --name flask-app-chedi --resource-group flask-app-rg --repo-url https://github.com/chedicoder/app-service.git --branch main --manual-integration'
                 }
             }
         }
-        stage('Push Image') {
-            steps {
-                script {
-                    sh 'echo ${TOKEN} | docker login -u ${USERNAME} --password-stdin'
-                    sh 'docker push ${USERNAME}/${DOCKER_IMAGE}'
-                }
-            }
+    }
+
+    post {
+        failure {
+            mail to: "${env.EMAIL_ADDRESS}",
+                 cc: 'ccedpeople@gmail.com',
+                 subject: "FAILED: Build ${env.JOB_NAME}",
+                 body: "Build failed ${env.JOB_NAME} build no: ${env.BUILD_NUMBER}.\n\nView the log at:\n${env.BUILD_URL}\n\nBlue Ocean:\n${env.RUN_DISPLAY_URL}"
         }
 
-        stage('Deploy Image') {
-            steps {
-                script {
-                    sh 'sudo kubectl --kubeconfig ~/.kube/config apply -f python-webapp/k8-deployment/python-app-deployment.yaml'
-                }
-            }
+        success {
+            mail to: "${env.EMAIL_ADDRESS}",
+                 cc: 'ccedpeople@gmail.com',
+                 subject: "SUCCESSFUL: Build ${env.JOB_NAME}",
+                 body: "Build Successful ${env.JOB_NAME} build no: ${env.BUILD_NUMBER}\n\nView the log at:\n${env.BUILD_URL}\n\nBlue Ocean:\n${env.RUN_DISPLAY_URL}"
+        }
+
+        aborted {
+            mail to: "${env.EMAIL_ADDRESS}",
+                 cc: 'ccedpeople@gmail.com',
+                 subject: "ABORTED: Build ${env.JOB_NAME}",
+                 body: "Build was aborted ${env.JOB_NAME} build no: ${env.BUILD_NUMBER}\n\nView the log at:\n${env.BUILD_URL}\n\nBlue Ocean:\n${env.RUN_DISPLAY_URL}"
         }
     }
 }

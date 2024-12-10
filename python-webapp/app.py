@@ -2,28 +2,42 @@ import logging
 import re
 import json
 from flask import Flask, render_template, request, redirect, url_for, flash
-from prometheus_client import make_wsgi_app, Counter, Histogram
+from prometheus_client import Counter, Histogram, Gauge,make_wsgi_app, generate_latest, CONTENT_TYPE_LATEST, REGISTRY
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.serving import run_simple
 import time
+import psutil
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
+# Application metrics
+REQUEST_COUNT = Counter('http_request_total', 'Total HTTP Requests', ['method', 'status', 'path'])
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP Request Duration', ['method', 'status', 'path'])
+REQUEST_IN_PROGRESS = Gauge('http_requests_in_progress', 'HTTP Requests in progress', ['method', 'path'])
+
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+    REQUEST_IN_PROGRESS.labels(method=request.method, path=request.path).inc()
+
+@app.after_request
+def after_request(response):
+    request_latency = time.time() - request.start_time
+    REQUEST_COUNT.labels(method=request.method, status=response.status_code, path=request.path).inc()
+    REQUEST_LATENCY.labels(method=request.method, status=response.status_code, path=request.path).observe(request_latency)
+    REQUEST_IN_PROGRESS.labels(method=request.method, path=request.path).dec()
+    return response
+
+@app.route('/metrics')
+def metrics():
+    return generate_latest(REGISTRY), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
     '/metrics': make_wsgi_app()
 })
 
-REQUEST_COUNT = Counter(
-    'app_request_count', # Nom de groupe de metrics
-    'Application Request Count', # Description de groupe de metrics
-    ['method', 'endpoint', 'http_status'] # Les attributs de chaque metric dans le groupe à fixer 
-)
-REQUEST_LATENCY = Histogram(
-    'app_request_latency_seconds',
-    'Application Request Latency',
-    ['method', 'endpoint']
-)
-
+# Logging
 class JSONFormatter(logging.Formatter):
     def format(self, record):
         log_record = {
@@ -74,15 +88,11 @@ def log_response_info(response):
 
 @app.route('/')
 def index():
-# Le metric à compter est le nombre des requetes ayant method = Get + path = / + réponse 200)
-    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('login.html')
 
 
 @app.route('/login', methods=['POST'])
 def login():
-# Le metric à compter est le nombre des requetes ayant method = POST + path = /login + réponse 200)
-    REQUEST_COUNT.labels('POST', '/login', 200).inc()
     username = request.form['username']
     password = request.form['password']
 
@@ -100,16 +110,12 @@ def login():
 
 @app.route('/welcome')
 def welcome():
-# Le metric à compter est le nombre des requetes ayant method = GET + path = /welcome + réponse 200)
-    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('welcome.html')
 
 
 @app.route('/second_level_auth')
 def second_level_auth():
-# Le metric à compter est le nombre des requetes ayant method = GET + path = /second_level_auth + réponse 200)
-    REQUEST_COUNT.labels('GET', '/', 200).inc()
     return render_template('second_level_auth.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+  app.run(host='0.0.0.0', port=5000)
