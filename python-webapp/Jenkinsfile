@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy Application to azure app service') {
             steps {
                 script {
-                    sh 'az webapp deployment source config --name flask-app-chedi --resource-group flask-app-rg --repo-url https://github.com/chedicoder/app-service.git --branch main --manual-integration'
+                    sh 'az webapp deployment source config --name flask-app-eya --resource-group flask-app-rg --repo-url https://github.com/chedicoder/app-service.git --branch main --manual-integration'
                 }
             }
         }

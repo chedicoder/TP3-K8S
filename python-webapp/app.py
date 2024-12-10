@@ -116,7 +116,7 @@ def login():
     password = request.form['password']
 
     if username == USERNAME and password == PASSWORD:
-        flash('Login successful!', 'success')
+        flash('Login Successful!', 'success')
         logger.info('Login successful for user: %s', username)
         if is_weak_password(password):
             logger.warning('weak password used by user: %s', username)
