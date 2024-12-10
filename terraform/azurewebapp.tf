@@ -41,9 +41,9 @@ resource "azurerm_linux_web_app" "linux_webapp" {
       python_version = "3.10"
     }
   }
-  app_settings = {
-    "FLASK_APP" = "python-webapp/app.py"
-  }
+  # app_settings = {
+  #   "FLASK_APP" = "python-webapp/app.py"
+  # }
 }
 
 output "resource_group_name" {
