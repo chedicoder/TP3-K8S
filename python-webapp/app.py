@@ -98,7 +98,7 @@ def is_weak_password(password):
 
 @app.before_request
 def log_request_info():
-    logger.info(f"Request received")
+    logger.info(f"Request  received")
 
 @app.after_request
 def log_response_info(response):
